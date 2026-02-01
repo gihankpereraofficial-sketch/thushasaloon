@@ -1,0 +1,2586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thusha Saloon | Luxury Hair & Beauty</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- FullCalendar -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        :root {
+            --matte-black: #0a0a0a;
+            --matte-black-light: #1a1a1a;
+            --warm-beige: #f5f1e8;
+            --warm-beige-dark: #e8e0d0;
+            --gold: #d4af37;
+            --gold-light: #e5c158;
+            --gold-dark: #b8941f;
+            --white: #ffffff;
+            --gray: #888888;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--matte-black);
+            color: var(--white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--matte-black);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gold);
+            border-radius: 4px;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1rem 5%;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--white);
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--matte-black);
+        }
+
+        .logo-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--gold);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--white);
+            font-size: 0.95rem;
+            font-weight: 400;
+            transition: color 0.3s ease;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gold);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--gold);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-phone {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--gold);
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-phone:hover {
+            background: var(--gold);
+            color: var(--matte-black);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Page Sections */
+        .page-section {
+            display: none;
+            min-height: 100vh;
+            padding-top: 80px;
+        }
+
+        .page-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            background: linear-gradient(135deg, rgba(10,10,10,0.9), rgba(10,10,10,0.7));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(212,175,55,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+            padding: 0 2rem;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--gold);
+            border-radius: 25px;
+            color: var(--gold);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+            background: linear-gradient(135deg, var(--white), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--warm-beige);
+            margin-bottom: 3rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: var(--matte-black);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(212,175,55,0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--white);
+            border: 2px solid var(--white);
+        }
+
+        .btn-secondary:hover {
+            background: var(--white);
+            color: var(--matte-black);
+        }
+
+        /* Section Styles */
+        .section {
+            padding: 6rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-tag {
+            color: var(--gold);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .section-title {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--white);
+        }
+
+        .section-subtitle {
+            color: var(--gray);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Services Grid */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .service-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(212,175,55,0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .service-card:hover::before {
+            left: 100%;
+        }
+
+        .service-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--gold);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .service-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .service-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--white);
+        }
+
+        .service-card p {
+            color: var(--gray);
+            margin-bottom: 1.5rem;
+        }
+
+        .service-price {
+            color: var(--gold);
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        /* Gallery */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .gallery-item {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            aspect-ratio: 1;
+            cursor: pointer;
+            background: var(--matte-black-light);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.1);
+        }
+
+        .gallery-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(10,10,10,0.9), transparent);
+            display: flex;
+            align-items: flex-end;
+            padding: 2rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .gallery-item:hover .gallery-overlay {
+            opacity: 1;
+        }
+
+        /* Pricing Table */
+        .pricing-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .pricing-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            padding: 3rem 2rem;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .pricing-card.featured {
+            border-color: var(--gold);
+            transform: scale(1.05);
+        }
+
+        .pricing-card.featured::before {
+            content: 'Popular';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--gold);
+            color: var(--matte-black);
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .pricing-card h3 {
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .pricing-price {
+            font-size: 3rem;
+            color: var(--gold);
+            margin-bottom: 2rem;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .pricing-price span {
+            font-size: 1rem;
+            color: var(--gray);
+        }
+
+        .pricing-features {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .pricing-features li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--glass-border);
+            color: var(--warm-beige);
+        }
+
+        /* Booking Calendar */
+        .booking-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            padding: 3rem;
+        }
+
+        .booking-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            color: var(--gold);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 1rem;
+            background: var(--matte-black-light);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: var(--white);
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        #calendar {
+            background: var(--matte-black-light);
+            border-radius: 15px;
+            padding: 1rem;
+            height: 500px;
+        }
+
+        .fc-theme-standard .fc-scrollgrid {
+            border-color: var(--glass-border);
+        }
+
+        .fc-theme-standard td, .fc-theme-standard th {
+            border-color: var(--glass-border);
+        }
+
+        .fc .fc-daygrid-day-number {
+            color: var(--white);
+        }
+
+        .fc .fc-col-header-cell-cushion {
+            color: var(--gold);
+        }
+
+        .fc .fc-button-primary {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: var(--matte-black);
+        }
+
+        .fc .fc-button-primary:hover {
+            background: var(--gold-dark);
+        }
+
+        /* Auth Forms */
+        .auth-container {
+            min-height: calc(100vh - 80px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .auth-box {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 450px;
+            backdrop-filter: blur(10px);
+        }
+
+        .auth-box .logo {
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-box h2 {
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-box p {
+            text-align: center;
+            color: var(--gray);
+            margin-bottom: 2rem;
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 2rem;
+            color: var(--gray);
+        }
+
+        .auth-switch a {
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        /* Dashboard */
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: calc(100vh - 80px);
+        }
+
+        .sidebar {
+            background: var(--matte-black-light);
+            border-right: 1px solid var(--glass-border);
+            padding: 2rem;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            margin-top: 2rem;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            color: var(--white);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            background: var(--gold);
+            color: var(--matte-black);
+        }
+
+        .dashboard-content {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 1.5rem;
+        }
+
+        .stat-card h4 {
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            color: var(--gold);
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* Admin Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--glass-bg);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .data-table th {
+            background: var(--matte-black-light);
+            color: var(--gold);
+            font-weight: 500;
+        }
+
+        .data-table tr:hover {
+            background: rgba(212,175,55,0.05);
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+        }
+
+        .badge-pending {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+        }
+
+        .badge-cancelled {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--matte-black-light);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--matte-black-light);
+            border-top: 1px solid var(--glass-border);
+            padding: 4rem 5% 2rem;
+            margin-top: 4rem;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            margin-bottom: 3rem;
+        }
+
+        .footer-section h4 {
+            color: var(--gold);
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
+        }
+
+        .footer-section p,
+        .footer-section a {
+            color: var(--gray);
+            text-decoration: none;
+            line-height: 2;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: var(--gold);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid var(--glass-border);
+            color: var(--gray);
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-links a {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .social-links a:hover {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: var(--matte-black);
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 100px;
+            right: 2rem;
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .toast {
+            background: var(--matte-black-light);
+            border: 1px solid var(--glass-border);
+            border-left: 4px solid var(--gold);
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease;
+            min-width: 300px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.success {
+            border-left-color: #4caf50;
+        }
+
+        .toast.error {
+            border-left-color: #f44336;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--glass-border);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(10,10,10,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 4000;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .loading-overlay p {
+            color: var(--gold);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .booking-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: var(--matte-black);
+                flex-direction: column;
+                padding: 2rem;
+                border-top: 1px solid var(--glass-border);
+            }
+            
+            .nav-links.active {
+                display: flex;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .pricing-card.featured {
+                transform: none;
+            }
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-2 { margin-top: 2rem; }
+        .mb-2 { margin-bottom: 2rem; }
+
+        /* FAQ */
+        .faq-item {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .faq-question {
+            padding: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s ease;
+        }
+
+        .faq-question:hover {
+            background: rgba(212,175,55,0.05);
+        }
+
+        .faq-answer {
+            padding: 0 1.5rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .faq-item.active .faq-answer {
+            padding: 0 1.5rem 1.5rem;
+            max-height: 500px;
+        }
+
+        .faq-item.active .faq-question {
+            color: var(--gold);
+        }
+
+        /* Testimonials */
+        .testimonial-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .testimonial-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--matte-black);
+        }
+
+        .testimonial-text {
+            font-style: italic;
+            color: var(--warm-beige);
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        .testimonial-author {
+            color: var(--gold);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Loading Thusha Saloon...</p>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a class="logo" onclick="router.navigate('home')" style="cursor: pointer;">
+                <div class="logo-icon">T</div>
+                <span class="logo-text">Thusha Saloon</span>
+            </a>
+            
+            <ul class="nav-links" id="navLinks">
+                <li><a onclick="router.navigate('home')">Home</a></li>
+                <li><a onclick="router.navigate('about')">About</a></li>
+                <li><a onclick="router.navigate('services')">Services</a></li>
+                <li><a onclick="router.navigate('pricing')">Pricing</a></li>
+                <li><a onclick="router.navigate('gallery')">Gallery</a></li>
+                <li><a onclick="router.navigate('booking')">Book Now</a></li>
+                <li><a onclick="router.navigate('contact')">Contact</a></li>
+                <li id="authLinks">
+                    <a class="btn btn-primary btn-small" onclick="router.navigate('login')">Login</a>
+                </li>
+                <li id="userLinks" class="hidden">
+                    <a onclick="router.navigate('dashboard')">Dashboard</a>
+                </li>
+                <li id="adminLinks" class="hidden">
+                    <a onclick="router.navigate('admin')">Admin</a>
+                </li>
+            </ul>
+            
+            <a href="tel:0725711025" class="nav-phone">
+                <span>📞</span>
+                <span>072 571 1025</span>
+            </a>
+            
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+        </div>
+    </nav>
+
+    <!-- HOME PAGE -->
+    <section id="home" class="page-section active">
+        <div class="hero">
+            <div class="hero-content">
+                <span class="hero-badge">✨ Premium Hair & Beauty Services</span>
+                <h1>Experience Luxury at Thusha Saloon</h1>
+                <p>Transform your look with our expert stylists. Where elegance meets excellence in every cut, color, and style.</p>
+                <div class="btn-group">
+                    <a class="btn btn-primary" onclick="router.navigate('booking')">
+                        Book Appointment
+                    </a>
+                    <a class="btn btn-secondary" onclick="router.navigate('services')">
+                        Our Services
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <span class="section-tag">Our Services</span>
+                <h2 class="section-title">What We Offer</h2>
+                <p class="section-subtitle">Premium services tailored to enhance your natural beauty</p>
+            </div>
+            <div class="services-grid" id="homeServices">
+                <!-- Dynamically loaded -->
+            </div>
+        </div>
+
+        <div class="section" style="background: var(--matte-black-light); margin: 0 -5%; padding: 6rem 5%;">
+            <div class="section-header">
+                <span class="section-tag">Testimonials</span>
+                <h2 class="section-title">What Clients Say</h2>
+            </div>
+            <div class="services-grid" id="homeTestimonials">
+                <!-- Dynamically loaded -->
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <span class="section-tag">Why Choose Us</span>
+                <h2 class="section-title">The Thusha Experience</h2>
+            </div>
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon">👑</div>
+                    <h3>Expert Stylists</h3>
+                    <p>Our team of certified professionals brings years of experience and continuous training in the latest techniques.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">✨</div>
+                    <h3>Premium Products</h3>
+                    <p>We use only the finest quality products from leading brands to ensure the best results for your hair and skin.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">🏆</div>
+                    <h3>Award Winning</h3>
+                    <p>Recognized as one of the top salons in the region for our exceptional service and client satisfaction.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT PAGE -->
+    <section id="about" class="page-section">
+        <div class="section">
+            <div class="section-header">
+                <span class="section-tag">About Us</span>
+                <h2 class="section-title">Our Story</h2>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;">
+                <div>
+                    <h3 style="font-size: 2rem; margin-bottom: 1.5rem; color: var(--gold);">A Legacy of Beauty Excellence</h3>
+                    <p style="color: var(--gray); margin-bottom: 1.5rem; line-height: 1.8;">
+                        Founded with a passion for beauty and a commitment to excellence, Thusha Saloon has been transforming looks and boosting confidence since our establishment. We believe that everyone deserves to look and feel their best.
+                    </p>
+                    <p style="color: var(--gray); margin-bottom: 1.5rem; line-height: 1.8;">
+                        Our team of skilled professionals combines artistry with technical expertise to deliver results that exceed expectations. From classic cuts to trendy styles, we stay ahead of the curve while honoring timeless techniques.
+                    </p>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 3rem;">
+                        <div class="text-center">
+                            <div style="font-size: 2.5rem; color: var(--gold); font-family: 'Playfair Display', serif;">10+</div>
+                            <div style="color: var(--gray);">Years Experience</div>
+                        </div>
+                        <div class="text-center">
+                            <div style="font-size: 2.5rem; color: var(--gold); font-family: 'Playfair Display', serif;">5000+</div>
+                            <div style="color: var(--gray);">Happy Clients</div>
+                        </div>
+                        <div class="text-center">
+                            <div style="font-size: 2.5rem; color: var(--gold); font-family: 'Playfair Display', serif;">15+</div>
+                            <div style="color: var(--gray);">Expert Stylists</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="background: linear-gradient(135deg, var(--gold), var(--gold-dark)); border-radius: 25px; padding: 3rem; color: var(--matte-black);">
+                    <h3 style="margin-bottom: 2rem;">Our Mission</h3>
+                    <p style="margin-bottom: 1.5rem; font-size: 1.1rem;">
+                        To provide exceptional beauty services in a luxurious, welcoming environment where every client feels valued and leaves feeling confident and beautiful.
+                    </p>
+                    <h3 style="margin-bottom: 2rem; margin-top: 2rem;">Our Vision</h3>
+                    <p style="font-size: 1.1rem;">
+                        To be the premier destination for hair and beauty services, known for innovation, quality, and an unparalleled client experience.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SERVICES PAGE -->
+    <section id="services" class="page-section">
+        <div class="section">
+            <div class="section-header">
+                <span class="section-tag">Services</span>
+                <h2 class="section-title">Our Premium Services</h2>
+                <p class="section-subtitle">Comprehensive beauty solutions for your every need</p>
+            </div>
+            <div class="services-grid" id="servicesGrid">
+                <!-- Dynamically loaded from Firebase -->
+            </div>
+        </div>
+    </section>
+
+    <!-- PRICING PAGE -->
+    <section id="pricing" class="page-section">
+        <div class="section">
+            <div class="section-header">
+                <span class="section-tag">Pricing</span>
+                <h2 class="section-title">Service Packages</h2>
+                <p class="section-subtitle">Transparent pricing for premium services</p>
+            </div>
+            <div class="pricing-container" id="pricingContainer">
+                <!-- Dynamically loaded -->
+            </div>
+        </div>
+    </section>
+
+    <!-- GALLERY PAGE -->
+    <section id="gallery" class="page-section">
+        <div class="section">
+            <div class="section-header">
+                <span class="section-tag">Gallery</span>
+                <h2 class="section-title">Our Work</h2>
+                <p class="section-subtitle">Browse through our portfolio of transformations</p>
+            </div>
+            <div class="gallery-grid" id="galleryGrid">
+                <!-- Dynamically loaded from Firebase -->
+            </div>
+        </div>
+    </section>
+
+    <!-- BOOKING PAGE -->
+    <section id="booking" class="page-section">
+        <div class="section">
+            <div class="section-header">
+                <span class="section-tag">Book Now</span>
+                <h2 class="section-title">Schedule Your Visit</h2>
+                <p class="section-subtitle">Choose your preferred date and time</p>
+            </div>
+            <div class="booking-container">
+                <div class="booking-form">
+                    <div class="form-group">
+                        <label>Select Service</label>
+                        <select id="bookingService" required>
+                            <option value="">Choose a service...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Your Name</label>
+                        <input type="text" id="bookingName" required placeholder="Enter your full name">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" id="bookingPhone" required placeholder="072 571 1025">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="bookingEmail" required placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Preferred Time</label>
+                        <select id="bookingTime" required>
+                            <option value="">Select time...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Special Requests</label>
+                        <textarea id="bookingNotes" rows="3" placeholder="Any special requirements..."></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="submitBooking()" style="width: 100%;">
+                        Confirm Booking
+                    </button>
+                </div>
+                <div id="calendar"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACT PAGE -->
+    <section id="contact" class="page-section">
+        <div class="section">
+            <div class="section-header">
+                <span class="section-tag">Contact</span>
+                <h2 class="section-title">Get In Touch</h2>
+                <p class="section-subtitle">We'd love to hear from you</p>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem;">
+                <div>
+                    <div class="service-card" style="margin-bottom: 2rem;">
+                        <h3>📞 Phone</h3>
+                        <p style="font-size: 1.25rem; color: var(--gold);">
+                            <a href="tel:0725711025" style="color: var(--gold); text-decoration: none;">072 571 1025</a>
+                        </p>
+                        <p style="font-size: 0.9rem;">Available during business hours</p>
+                    </div>
+                    <div class="service-card" style="margin-bottom: 2rem;">
+                        <h3>📧 Email</h3>
+                        <p style="font-size: 1.25rem; color: var(--gold);">info@thushasaloon.com</p>
+                        <p style="font-size: 0.9rem;">We'll respond within 24 hours</p>
+                    </div>
+                    <div class="service-card">
+                        <h3>🕒 Business Hours</h3>
+                        <p id="businessHours">
+                            Monday - Friday: 9:00 AM - 7:00 PM<br>
+                            Saturday: 9:00 AM - 6:00 PM<br>
+                            Sunday: 10:00 AM - 4:00 PM
+                        </p>
+                    </div>
+                </div>
+                <div class="service-card">
+                    <h3 style="margin-bottom: 2rem;">Send us a Message</h3>
+                    <div class="form-group">
+                        <label>Your Name</label>
+                        <input type="text" id="contactName" placeholder="Enter your name">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="contactEmail" placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea id="contactMessage" rows="5" placeholder="How can we help you?"></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="submitContact()" style="width: 100%;">
+                        Send Message
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ PAGE -->
+    <section id="faq" class="page-section">
+        <div class="section">
+            <div class="section-header">
+                <span class="section-tag">FAQ</span>
+                <h2 class="section-title">Frequently Asked Questions</h2>
+            </div>
+            <div id="faqContainer" style="max-width: 800px; margin: 0 auto;">
+                <!-- Dynamically loaded -->
+            </div>
+        </div>
+    </section>
+
+    <!-- PRIVACY PAGE -->
+    <section id="privacy" class="page-section">
+        <div class="section" style="max-width: 900px;">
+            <div class="section-header">
+                <span class="section-tag">Legal</span>
+                <h2 class="section-title">Privacy Policy</h2>
+            </div>
+            <div class="service-card">
+                <h3>1. Information We Collect</h3>
+                <p style="margin-bottom: 1.5rem; color: var(--gray);">We collect personal information that you voluntarily provide to us when you register on our website, make a booking, or contact us. This may include your name, email address, phone number, and appointment preferences.</p>
+                
+                <h3>2. How We Use Your Information</h3>
+                <p style="margin-bottom: 1.5rem; color: var(--gray);">We use the information we collect to provide and maintain our services, manage your bookings, communicate with you, and improve our website experience.</p>
+                
+                <h3>3. Data Security</h3>
+                <p style="margin-bottom: 1.5rem; color: var(--gray);">We implement appropriate technical and organizational security measures to protect your personal data against unauthorized access, alteration, or destruction.</p>
+                
+                <h3>4. Contact Us</h3>
+                <p style="color: var(--gray);">If you have any questions about this Privacy Policy, please contact us at info@thushasaloon.com or call 072 571 1025.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- TERMS PAGE -->
+    <section id="terms" class="page-section">
+        <div class="section" style="max-width: 900px;">
+            <div class="section-header">
+                <span class="section-tag">Legal</span>
+                <h2 class="section-title">Terms & Conditions</h2>
+            </div>
+            <div class="service-card">
+                <h3>1. Booking Policy</h3>
+                <p style="margin-bottom: 1.5rem; color: var(--gray);">Appointments must be booked at least 24 hours in advance. Cancellations should be made at least 12 hours before the scheduled time to avoid cancellation fees.</p>
+                
+                <h3>2. Payment Terms</h3>
+                <p style="margin-bottom: 1.5rem; color: var(--gray);">Payment is due at the time of service. We accept cash, credit cards, and mobile payments. Prices are subject to change without prior notice.</p>
+                
+                <h3>3. Late Arrivals</h3>
+                <p style="margin-bottom: 1.5rem; color: var(--gray);">Clients arriving more than 15 minutes late may need to reschedule their appointment to ensure quality service for all clients.</p>
+                
+                <h3>4. Liability</h3>
+                <p style="color: var(--gray);">Thusha Saloon is not liable for any allergic reactions to products. Please inform your stylist of any allergies or sensitivities before treatment.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- LOGIN PAGE -->
+    <section id="login" class="page-section">
+        <div class="auth-container">
+            <div class="auth-box">
+                <div class="logo" style="justify-content: center;">
+                    <div class="logo-icon">T</div>
+                    <span class="logo-text">Thusha Saloon</span>
+                </div>
+                <h2>Welcome Back</h2>
+                <p>Sign in to access your account</p>
+                
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="loginEmail" placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••">
+                </div>
+                <button class="btn btn-primary" onclick="handleLogin()" style="width: 100%;">
+                    Sign In
+                </button>
+                
+                <div class="auth-switch">
+                    Don't have an account? <a onclick="router.navigate('register')">Register</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- REGISTER PAGE -->
+    <section id="register" class="page-section">
+        <div class="auth-container">
+            <div class="auth-box">
+                <div class="logo" style="justify-content: center;">
+                    <div class="logo-icon">T</div>
+                    <span class="logo-text">Thusha Saloon</span>
+                </div>
+                <h2>Create Account</h2>
+                <p>Join us for exclusive benefits</p>
+                
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="registerName" placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="registerEmail" placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="registerPhone" placeholder="072 571 1025">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="registerPassword" placeholder="••••••••">
+                </div>
+                <button class="btn btn-primary" onclick="handleRegister()" style="width: 100%;">
+                    Create Account
+                </button>
+                
+                <div class="auth-switch">
+                    Already have an account? <a onclick="router.navigate('login')">Sign In</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- USER DASHBOARD -->
+    <section id="dashboard" class="page-section">
+        <div class="dashboard-container">
+            <aside class="sidebar">
+                <div class="logo" style="margin-bottom: 2rem;">
+                    <div class="logo-icon">T</div>
+                    <span class="logo-text">Thusha Saloon</span>
+                </div>
+                <ul class="sidebar-menu">
+                    <li><a class="active" onclick="showDashboardSection('overview')">📊 Overview</a></li>
+                    <li><a onclick="showDashboardSection('bookings')">📅 My Bookings</a></li>
+                    <li><a onclick="showDashboardSection('profile')">👤 Profile</a></li>
+                    <li><a onclick="handleLogout()">🚪 Logout</a></li>
+                </ul>
+            </aside>
+            <main class="dashboard-content">
+                <div id="userOverview">
+                    <h2 style="margin-bottom: 2rem;">Welcome back, <span id="userName">Client</span>!</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h4>Upcoming Appointments</h4>
+                            <div class="value" id="upcomingCount">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Total Visits</h4>
+                            <div class="value" id="totalVisits">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Member Since</h4>
+                            <div class="value" id="memberSince">2024</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="userBookings" class="hidden">
+                    <h2 style="margin-bottom: 2rem;">My Bookings</h2>
+                    <div id="userBookingsList"></div>
+                </div>
+                <div id="userProfile" class="hidden">
+                    <h2 style="margin-bottom: 2rem;">My Profile</h2>
+                    <div class="service-card" style="max-width: 500px;">
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input type="text" id="profileName">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="profileEmail" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="tel" id="profilePhone">
+                        </div>
+                        <button class="btn btn-primary" onclick="updateProfile()">Update Profile</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </section>
+
+    <!-- ADMIN DASHBOARD -->
+    <section id="admin" class="page-section">
+        <div class="dashboard-container">
+            <aside class="sidebar">
+                <div class="logo" style="margin-bottom: 2rem;">
+                    <div class="logo-icon">T</div>
+                    <span class="logo-text" style="font-size: 1.2rem;">Admin Panel</span>
+                </div>
+                <ul class="sidebar-menu">
+                    <li><a class="active" onclick="showAdminSection('overview')">📊 Dashboard</a></li>
+                    <li><a onclick="showAdminSection('bookings')">📅 Bookings</a></li>
+                    <li><a onclick="showAdminSection('services')">💇 Services</a></li>
+                    <li><a onclick="showAdminSection('gallery')">🖼️ Gallery</a></li>
+                    <li><a onclick="showAdminSection('content')">📝 Content</a></li>
+                    <li><a onclick="showAdminSection('users')">👥 Users</a></li>
+                    <li><a onclick="showAdminSection('settings')">⚙️ Settings</a></li>
+                    <li><a onclick="handleLogout()">🚪 Logout</a></li>
+                </ul>
+            </aside>
+            <main class="dashboard-content">
+                <!-- Admin Overview -->
+                <div id="adminOverview">
+                    <h2 style="margin-bottom: 2rem;">Admin Dashboard</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h4>Today's Bookings</h4>
+                            <div class="value" id="adminTodayBookings">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Total Bookings</h4>
+                            <div class="value" id="adminTotalBookings">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Registered Users</h4>
+                            <div class="value" id="adminTotalUsers">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Services</h4>
+                            <div class="value" id="adminTotalServices">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Bookings -->
+                <div id="adminBookings" class="hidden">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <h2>All Bookings</h2>
+                        <button class="btn btn-primary" onclick="exportBookings()">Export CSV</button>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Client</th>
+                                    <th>Service</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminBookingsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Admin Services -->
+                <div id="adminServices" class="hidden">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <h2>Manage Services</h2>
+                        <button class="btn btn-primary" onclick="openServiceModal()">+ Add Service</button>
+                    </div>
+                    <div id="adminServicesList"></div>
+                </div>
+
+                <!-- Admin Gallery -->
+                <div id="adminGallery" class="hidden">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <h2>Gallery Management</h2>
+                        <button class="btn btn-primary" onclick="openGalleryModal()">+ Add Image URL</button>
+                    </div>
+                    <div class="gallery-grid" id="adminGalleryGrid"></div>
+                </div>
+
+                <!-- Admin Content -->
+                <div id="adminContent" class="hidden">
+                    <h2 style="margin-bottom: 2rem;">Content Management</h2>
+                    <div class="service-card">
+                        <h3>Business Hours</h3>
+                        <div class="form-group">
+                            <label>Weekday Hours</label>
+                            <input type="text" id="editWeekdayHours" value="9:00 AM - 7:00 PM">
+                        </div>
+                        <div class="form-group">
+                            <label>Saturday Hours</label>
+                            <input type="text" id="editSaturdayHours" value="9:00 AM - 6:00 PM">
+                        </div>
+                        <div class="form-group">
+                            <label>Sunday Hours</label>
+                            <input type="text" id="editSundayHours" value="10:00 AM - 4:00 PM">
+                        </div>
+                        <button class="btn btn-primary" onclick="saveBusinessHours()">Save Changes</button>
+                    </div>
+                    
+                    <div class="service-card mt-2">
+                        <h3>FAQs</h3>
+                        <div id="adminFaqList"></div>
+                        <button class="btn btn-secondary mt-2" onclick="addNewFaq()">+ Add FAQ</button>
+                    </div>
+                </div>
+
+                <!-- Admin Users -->
+                <div id="adminUsers" class="hidden">
+                    <h2 style="margin-bottom: 2rem;">Registered Users</h2>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Joined</th>
+                                    <th>Role</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminUsersTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Admin Settings -->
+                <div id="adminSettings" class="hidden">
+                    <h2 style="margin-bottom: 2rem;">System Settings</h2>
+                    <div class="service-card">
+                        <h3>Blocked Dates</h3>
+                        <div class="form-group">
+                            <label>Block Date</label>
+                            <input type="date" id="blockDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Reason</label>
+                            <input type="text" id="blockReason" placeholder="Holiday / Maintenance">
+                        </div>
+                        <button class="btn btn-primary" onclick="blockDate()">Block Date</button>
+                        <div id="blockedDatesList" class="mt-2"></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-grid">
+            <div class="footer-section">
+                <div class="logo" style="margin-bottom: 1rem;">
+                    <div class="logo-icon">T</div>
+                    <span class="logo-text">Thusha Saloon</span>
+                </div>
+                <p>Experience luxury and transformation at Thusha Saloon. Your beauty is our passion.</p>
+                <div class="social-links">
+                    <a href="#">📘</a>
+                    <a href="#">📸</a>
+                    <a href="#">🐦</a>
+                    <a href="#">💼</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <a onclick="router.navigate('services')">Services</a><br>
+                <a onclick="router.navigate('pricing')">Pricing</a><br>
+                <a onclick="router.navigate('gallery')">Gallery</a><br>
+                <a onclick="router.navigate('booking')">Book Now</a>
+            </div>
+            <div class="footer-section">
+                <h4>Contact</h4>
+                <p>📞 <a href="tel:0725711025">072 571 1025</a></p>
+                <p>📧 info@thushasaloon.com</p>
+                <p>📍 123 Beauty Street, Colombo</p>
+            </div>
+            <div class="footer-section">
+                <h4>Legal</h4>
+                <a onclick="router.navigate('privacy')">Privacy Policy</a><br>
+                <a onclick="router.navigate('terms')">Terms & Conditions</a><br>
+                <a onclick="router.navigate('faq')">FAQ</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Thusha Saloon. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Service Modal -->
+    <div id="serviceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add Service</h3>
+                <button class="modal-close" onclick="closeModal('serviceModal')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Service Name</label>
+                <input type="text" id="serviceName">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="serviceDesc" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Price (LKR)</label>
+                <input type="number" id="servicePrice">
+            </div>
+            <div class="form-group">
+                <label>Duration (minutes)</label>
+                <input type="number" id="serviceDuration">
+            </div>
+            <div class="form-group">
+                <label>Icon (emoji)</label>
+                <input type="text" id="serviceIcon" placeholder="💇">
+            </div>
+            <button class="btn btn-primary" onclick="saveService()">Save Service</button>
+        </div>
+    </div>
+
+    <!-- Gallery Modal -->
+    <div id="galleryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Gallery Image</h3>
+                <button class="modal-close" onclick="closeModal('galleryModal')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Image URL (from Imgur, etc.)</label>
+                <input type="text" id="galleryImageUrl" placeholder="https://i.imgur.com/abc123.jpg">
+            </div>
+            <div class="form-group">
+                <label>Image Title</label>
+                <input type="text" id="galleryImageTitle" placeholder="Bridal Hairstyle">
+            </div>
+            <button class="btn btn-primary" onclick="saveGalleryImage()">Add Image</button>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration - REPLACE WITH YOUR CONFIG FROM FIREBASE CONSOLE
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        let app, auth, db;
+        let currentUser = null;
+        let isAdmin = false;
+        let calendar;
+        let editingServiceId = null;
+
+        // Router
+        const router = {
+            navigate: function(page) {
+                document.querySelectorAll('.page-section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                const target = document.getElementById(page);
+                if (target) {
+                    target.classList.add('active');
+                    window.scrollTo(0, 0);
+                    
+                    if (page === 'booking' && calendar) {
+                        setTimeout(() => calendar.render(), 100);
+                    }
+                    if (page === 'admin' && isAdmin) {
+                        loadAdminData();
+                    }
+                    if (page === 'dashboard' && currentUser) {
+                        loadUserData();
+                    }
+                }
+                
+                // Close mobile menu
+                document.getElementById('navLinks').classList.remove('active');
+            }
+        };
+
+        // Initialize Application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if Firebase config is valid
+            if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+                showToast('Please configure Firebase credentials in the code', 'error');
+                document.getElementById('loadingOverlay').style.display = 'none';
+                
+                // Load static data anyway for demo
+                loadStaticData();
+                return;
+            }
+
+            try {
+                app = firebase.initializeApp(firebaseConfig);
+                auth = firebase.auth();
+                db = firebase.firestore();
+
+                auth.onAuthStateChanged(handleAuthStateChange);
+                
+                initCalendar();
+                loadServices();
+                loadGallery();
+                loadFaqs();
+                loadTestimonials();
+                
+                setTimeout(() => {
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                }, 1000);
+
+            } catch (error) {
+                console.error('Firebase initialization error:', error);
+                showToast('Error initializing app. Check console.', 'error');
+                document.getElementById('loadingOverlay').style.display = 'none';
+                loadStaticData();
+            }
+        });
+
+        function loadStaticData() {
+            // Load data without Firebase for demo
+            renderServices([
+                { id: '1', name: 'Haircut & Styling', description: 'Professional cut and style tailored to your face shape', price: 2500, duration: 60, icon: '💇' },
+                { id: '2', name: 'Hair Coloring', description: 'Full color, highlights, balayage, and creative coloring', price: 5000, duration: 120, icon: '🎨' },
+                { id: '3', name: 'Hair Treatment', description: 'Deep conditioning, keratin, and restorative treatments', price: 3500, duration: 90, icon: '✨' },
+                { id: '4', name: 'Bridal Package', description: 'Complete bridal hair and makeup for your special day', price: 15000, duration: 180, icon: '👰' },
+                { id: '5', name: 'Facial Treatment', description: 'Rejuvenating facials for glowing, healthy skin', price: 4000, duration: 75, icon: '💆' },
+                { id: '6', name: 'Manicure & Pedicure', description: 'Nail care, polish, and spa treatments', price: 3000, duration: 60, icon: '💅' }
+            ]);
+            
+            loadGallery();
+            loadFaqs();
+            loadTestimonials();
+        }
+
+        // Authentication Handlers
+        function handleAuthStateChange(user) {
+            currentUser = user;
+            
+            if (user) {
+                db.collection('users').doc(user.uid).get().then(doc => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        isAdmin = data.role === 'admin';
+                        updateUIForAuth();
+                    }
+                });
+            } else {
+                isAdmin = false;
+                updateUIForAuth();
+            }
+        }
+
+        function updateUIForAuth() {
+            const authLinks = document.getElementById('authLinks');
+            const userLinks = document.getElementById('userLinks');
+            const adminLinks = document.getElementById('adminLinks');
+            
+            if (currentUser) {
+                authLinks.classList.add('hidden');
+                userLinks.classList.remove('hidden');
+                if (isAdmin) {
+                    adminLinks.classList.remove('hidden');
+                }
+            } else {
+                authLinks.classList.remove('hidden');
+                userLinks.classList.add('hidden');
+                adminLinks.classList.add('hidden');
+            }
+        }
+
+        function handleLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!email || !password) {
+                showToast('Please fill in all fields', 'error');
+                return;
+            }
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    showToast('Welcome back!', 'success');
+                    router.navigate('home');
+                })
+                .catch(error => {
+                    showToast(error.message, 'error');
+                });
+        }
+
+        function handleRegister() {
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const phone = document.getElementById('registerPhone').value;
+            const password = document.getElementById('registerPassword').value;
+            
+            if (!name || !email || !phone || !password) {
+                showToast('Please fill in all fields', 'error');
+                return;
+            }
+
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    return db.collection('users').doc(userCredential.user.uid).set({
+                        name: name,
+                        email: email,
+                        phone: phone,
+                        role: 'client',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                })
+                .then(() => {
+                    showToast('Account created successfully!', 'success');
+                    router.navigate('home');
+                })
+                .catch(error => {
+                    showToast(error.message, 'error');
+                });
+        }
+
+        function handleLogout() {
+            auth.signOut().then(() => {
+                showToast('Logged out successfully', 'success');
+                router.navigate('home');
+            });
+        }
+
+        // Data Loading Functions
+        function loadServices() {
+            if (!db) return;
+            
+            db.collection('services').onSnapshot(snapshot => {
+                const services = [];
+                snapshot.forEach(doc => {
+                    services.push({ id: doc.id, ...doc.data() });
+                });
+                
+                if (services.length === 0) {
+                    // Add default services
+                    const defaults = [
+                        { name: 'Haircut & Styling', description: 'Professional cut and style', price: 2500, duration: 60, icon: '💇' },
+                        { name: 'Hair Coloring', description: 'Full color and highlights', price: 5000, duration: 120, icon: '🎨' },
+                        { name: 'Hair Treatment', description: 'Deep conditioning', price: 3500, duration: 90, icon: '✨' }
+                    ];
+                    defaults.forEach(s => db.collection('services').add(s));
+                } else {
+                    renderServices(services);
+                }
+            });
+        }
+
+        function renderServices(services) {
+            const servicesGrid = document.getElementById('servicesGrid');
+            const homeServices = document.getElementById('homeServices');
+            const bookingService = document.getElementById('bookingService');
+            const pricingContainer = document.getElementById('pricingContainer');
+            
+            if (servicesGrid) {
+                servicesGrid.innerHTML = services.map(service => `
+                    <div class="service-card">
+                        <div class="service-icon">${service.icon}</div>
+                        <h3>${service.name}</h3>
+                        <p>${service.description}</p>
+                        <div class="service-price">LKR ${service.price.toLocaleString()}</div>
+                        <p style="font-size: 0.9rem; color: var(--gray); margin-top: 0.5rem;">${service.duration} mins</p>
+                    </div>
+                `).join('');
+            }
+            
+            if (homeServices) {
+                homeServices.innerHTML = services.slice(0, 3).map(service => `
+                    <div class="service-card">
+                        <div class="service-icon">${service.icon}</div>
+                        <h3>${service.name}</h3>
+                        <p>${service.description}</p>
+                        <div class="service-price">LKR ${service.price.toLocaleString()}</div>
+                    </div>
+                `).join('');
+            }
+            
+            if (bookingService) {
+                bookingService.innerHTML = '<option value="">Choose a service...</option>' + 
+                    services.map(service => `
+                        <option value="${service.id}" data-duration="${service.duration}">${service.name} - LKR ${service.price.toLocaleString()}</option>
+                    `).join('');
+            }
+            
+            if (pricingContainer) {
+                pricingContainer.innerHTML = services.map((service, index) => `
+                    <div class="pricing-card ${index === 1 ? 'featured' : ''}">
+                        <h3>${service.name}</h3>
+                        <div class="pricing-price">LKR ${service.price.toLocaleString()}<span>/${service.duration}min</span></div>
+                        <ul class="pricing-features">
+                            <li>${service.description}</li>
+                            <li>Professional consultation</li>
+                            <li>Premium products</li>
+                            <li>Complimentary beverage</li>
+                        </ul>
+                        <button class="btn btn-primary" onclick="router.navigate('booking')" style="width: 100%;">Book Now</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function loadGallery() {
+            const galleryGrid = document.getElementById('galleryGrid');
+            const adminGalleryGrid = document.getElementById('adminGalleryGrid');
+            
+            const defaultImages = [
+                { id: '1', url: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400', title: 'Bridal Styling' },
+                { id: '2', url: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400', title: 'Hair Coloring' },
+                { id: '3', url: 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=400', title: 'Hair Treatment' },
+                { id: '4', url: 'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=400', title: 'Makeup' },
+                { id: '5', url: 'https://images.unsplash.com/photo-1600948836101-f9ffda59d250?w=400', title: 'Nail Art' },
+                { id: '6', url: 'https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=400', title: 'Salon Interior' }
+            ];
+
+            const html = defaultImages.map(img => `
+                <div class="gallery-item" onclick="openImageModal('${img.url}')">
+                    <img src="${img.url}" alt="${img.title}" loading="lazy" onerror="this.src='https://via.placeholder.com/400x400/1a1a1a/d4af37?text=${img.title}'">
+                    <div class="gallery-overlay">
+                        <h4>${img.title}</h4>
+                    </div>
+                </div>
+            `).join('');
+            
+            if (galleryGrid) galleryGrid.innerHTML = html;
+            if (adminGalleryGrid) adminGalleryGrid.innerHTML = html;
+        }
+
+        function loadFaqs() {
+            const faqContainer = document.getElementById('faqContainer');
+            
+            const faqs = [
+                { question: 'Do I need to book an appointment?', answer: 'Yes, we recommend booking an appointment to ensure we can accommodate you at your preferred time. Walk-ins are welcome but subject to availability.' },
+                { question: 'What is your cancellation policy?', answer: 'We understand plans change. Please cancel or reschedule at least 12 hours before your appointment to avoid a cancellation fee.' },
+                { question: 'What products do you use?', answer: 'We use premium professional products from leading brands like L\'Oreal, Wella, and Schwarzkopf to ensure the best results for your hair.' },
+                { question: 'Do you offer bridal packages?', answer: 'Yes! We offer comprehensive bridal packages including hair, makeup, and nail services. Contact us for customized bridal quotes.' },
+                { question: 'Is parking available?', answer: 'Yes, we have dedicated parking space for our clients at the salon premises.' }
+            ];
+
+            if (faqContainer) {
+                faqContainer.innerHTML = faqs.map((faq, index) => `
+                    <div class="faq-item" onclick="toggleFaq(this)">
+                        <div class="faq-question">
+                            <span>${faq.question}</span>
+                            <span>▼</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p style="color: var(--gray);">${faq.answer}</p>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function loadTestimonials() {
+            const container = document.getElementById('homeTestimonials');
+            
+            const testimonials = [
+                { name: 'Sarah M.', text: 'Absolutely love the service at Thusha Saloon! My hair has never looked better. The staff is so professional and friendly.', avatar: 'S' },
+                { name: 'Priya K.', text: 'Best bridal package in town! They made me feel like a princess on my special day. Highly recommended!', avatar: 'P' },
+                { name: 'Amanda S.', text: 'Great ambiance and expert stylists. I always leave feeling confident and beautiful. My go-to salon!', avatar: 'A' }
+            ];
+
+            if (container) {
+                container.innerHTML = testimonials.map(t => `
+                    <div class="testimonial-card">
+                        <div class="testimonial-avatar">${t.avatar}</div>
+                        <p class="testimonial-text">"${t.text}"</p>
+                        <div class="testimonial-author">${t.name}</div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Calendar Initialization
+        function initCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            if (!calendarEl) return;
+
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                selectable: true,
+                selectMirror: true,
+                validRange: {
+                    start: new Date()
+                },
+                select: function(info) {
+                    loadTimeSlots(info.start);
+                },
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek'
+                }
+            });
+
+            calendar.render();
+        }
+
+        function loadTimeSlots(date) {
+            const select = document.getElementById('bookingTime');
+            const slots = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00'];
+            
+            select.innerHTML = '<option value="">Select time...</option>' +
+                slots.map(time => `<option value="${time}">${time}</option>`).join('');
+        }
+
+        function submitBooking() {
+            const service = document.getElementById('bookingService').value;
+            const name = document.getElementById('bookingName').value;
+            const phone = document.getElementById('bookingPhone').value;
+            const email = document.getElementById('bookingEmail').value;
+            const time = document.getElementById('bookingTime').value;
+            const notes = document.getElementById('bookingNotes').value;
+
+            if (!service || !name || !phone || !email || !time) {
+                showToast('Please fill in all required fields', 'error');
+                return;
+            }
+
+            const bookingData = {
+                service: service,
+                clientName: name,
+                phone: phone,
+                email: email,
+                time: time,
+                notes: notes,
+                status: 'pending',
+                createdAt: firebase.firestore ? firebase.firestore.FieldValue.serverTimestamp() : new Date()
+            };
+
+            if (db) {
+                db.collection('bookings').add(bookingData)
+                    .then(() => {
+                        showToast('Booking confirmed! We will contact you shortly.', 'success');
+                        document.getElementById('bookingService').value = '';
+                        document.getElementById('bookingName').value = '';
+                        document.getElementById('bookingPhone').value = '';
+                        document.getElementById('bookingEmail').value = '';
+                        document.getElementById('bookingTime').value = '';
+                        document.getElementById('bookingNotes').value = '';
+                    })
+                    .catch(error => {
+                        showToast('Error saving booking. Please try again.', 'error');
+                    });
+            } else {
+                showToast('Demo mode: Booking would be saved with Firebase configured', 'success');
+            }
+        }
+
+        // Admin Functions
+        function loadAdminData() {
+            if (!isAdmin) return;
+            
+            if (db) {
+                db.collection('bookings').get().then(snapshot => {
+                    document.getElementById('adminTotalBookings').textContent = snapshot.size;
+                });
+                
+                db.collection('users').get().then(snapshot => {
+                    document.getElementById('adminTotalUsers').textContent = snapshot.size;
+                });
+                
+                db.collection('services').get().then(snapshot => {
+                    document.getElementById('adminTotalServices').textContent = snapshot.size;
+                });
+                
+                loadAdminBookings();
+                loadAdminServices();
+                loadAdminUsers();
+            }
+        }
+
+        function loadAdminBookings() {
+            const tbody = document.getElementById('adminBookingsTable');
+            if (!tbody || !db) return;
+            
+            db.collection('bookings').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+                tbody.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : 'N/A';
+                    const row = `
+                        <tr>
+                            <td>${date}</td>
+                            <td>${data.clientName}</td>
+                            <td>${data.service}</td>
+                            <td>${data.time}</td>
+                            <td><span class="badge badge-${data.status}">${data.status}</span></td>
+                            <td>
+                                <button class="btn btn-small btn-primary" onclick="updateBookingStatus('${doc.id}', 'confirmed')">Confirm</button>
+                                <button class="btn btn-small btn-danger" onclick="updateBookingStatus('${doc.id}', 'cancelled')">Cancel</button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            });
+        }
+
+        function loadAdminServices() {
+            const container = document.getElementById('adminServicesList');
+            if (!container || !db) return;
+            
+            db.collection('services').onSnapshot(snapshot => {
+                container.innerHTML = '<div class="services-grid">' + 
+                    snapshot.docs.map(doc => {
+                        const data = doc.data();
+                        return `
+                            <div class="service-card">
+                                <div style="display: flex; justify-content: space-between; align-items: start;">
+                                    <div class="service-icon">${data.icon}</div>
+                                    <button class="btn btn-small" onclick="editService('${doc.id}')">Edit</button>
+                                </div>
+                                <h3>${data.name}</h3>
+                                <p>${data.description}</p>
+                                <div class="service-price">LKR ${data.price.toLocaleString()}</div>
+                            </div>
+                        `;
+                    }).join('') + '</div>';
+            });
+        }
+
+        function loadAdminUsers() {
+            const tbody = document.getElementById('adminUsersTable');
+            if (!tbody || !db) return;
+            
+            db.collection('users').get().then(snapshot => {
+                tbody.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : 'N/A';
+                    const row = `
+                        <tr>
+                            <td>${data.name}</td>
+                            <td>${data.email}</td>
+                            <td>${data.phone}</td>
+                            <td>${date}</td>
+                            <td>${data.role}</td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            });
+        }
+
+        function updateBookingStatus(bookingId, status) {
+            if (!db) return;
+            db.collection('bookings').doc(bookingId).update({ status: status })
+                .then(() => showToast(`Booking ${status}`, 'success'))
+                .catch(error => showToast('Error updating booking', 'error'));
+        }
+
+        function openServiceModal(serviceId = null) {
+            editingServiceId = serviceId;
+            document.getElementById('modalTitle').textContent = serviceId ? 'Edit Service' : 'Add Service';
+            
+            if (serviceId && db) {
+                db.collection('services').doc(serviceId).get().then(doc => {
+                    const data = doc.data();
+                    document.getElementById('serviceName').value = data.name;
+                    document.getElementById('serviceDesc').value = data.description;
+                    document.getElementById('servicePrice').value = data.price;
+                    document.getElementById('serviceDuration').value = data.duration;
+                    document.getElementById('serviceIcon').value = data.icon;
+                });
+            } else {
+                document.getElementById('serviceName').value = '';
+                document.getElementById('serviceDesc').value = '';
+                document.getElementById('servicePrice').value = '';
+                document.getElementById('serviceDuration').value = '';
+                document.getElementById('serviceIcon').value = '';
+            }
+            
+            document.getElementById('serviceModal').classList.add('active');
+        }
+
+        function saveService() {
+            const data = {
+                name: document.getElementById('serviceName').value,
+                description: document.getElementById('serviceDesc').value,
+                price: parseInt(document.getElementById('servicePrice').value),
+                duration: parseInt(document.getElementById('serviceDuration').value),
+                icon: document.getElementById('serviceIcon').value
+            };
+
+            if (!db) {
+                showToast('Firebase not configured', 'error');
+                return;
+            }
+
+            if (editingServiceId) {
+                db.collection('services').doc(editingServiceId).update(data)
+                    .then(() => {
+                        showToast('Service updated', 'success');
+                        closeModal('serviceModal');
+                    });
+            } else {
+                db.collection('services').add(data)
+                    .then(() => {
+                        showToast('Service added', 'success');
+                        closeModal('serviceModal');
+                    });
+            }
+        }
+
+        function editService(id) {
+            openServiceModal(id);
+        }
+
+        function openGalleryModal() {
+            document.getElementById('galleryImageUrl').value = '';
+            document.getElementById('galleryImageTitle').value = '';
+            document.getElementById('galleryModal').classList.add('active');
+        }
+
+        function saveGalleryImage() {
+            const url = document.getElementById('galleryImageUrl').value;
+            const title = document.getElementById('galleryImageTitle').value;
+            
+            if (!url || !title) {
+                showToast('Please fill in all fields', 'error');
+                return;
+            }
+
+            if (db) {
+                db.collection('gallery').add({
+                    url: url,
+                    title: title,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                }).then(() => {
+                    showToast('Image added to gallery', 'success');
+                    closeModal('galleryModal');
+                    loadGallery();
+                });
+            } else {
+                showToast('Demo: Image would be saved', 'success');
+                closeModal('galleryModal');
+            }
+        }
+
+        // User Dashboard Functions
+        function loadUserData() {
+            if (!currentUser || !db) return;
+            
+            db.collection('users').doc(currentUser.uid).get().then(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    document.getElementById('userName').textContent = data.name;
+                    document.getElementById('profileName').value = data.name;
+                    document.getElementById('profileEmail').value = data.email;
+                    document.getElementById('profilePhone').value = data.phone || '';
+                    const year = data.createdAt ? new Date(data.createdAt.toDate()).getFullYear() : '2024';
+                    document.getElementById('memberSince').textContent = year;
+                }
+            });
+
+            db.collection('bookings')
+                .where('email', '==', currentUser.email)
+                .orderBy('createdAt', 'desc')
+                .onSnapshot(snapshot => {
+                    document.getElementById('upcomingCount').textContent = snapshot.size;
+                    document.getElementById('totalVisits').textContent = snapshot.size;
+                    
+                    const list = document.getElementById('userBookingsList');
+                    if (list) {
+                        list.innerHTML = snapshot.docs.map(doc => {
+                            const data = doc.data();
+                            const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : 'N/A';
+                            return `
+                                <div class="service-card" style="margin-bottom: 1rem;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <div>
+                                            <h4>${data.service}</h4>
+                                            <p style="color: var(--gray);">${date} at ${data.time}</p>
+                                        </div>
+                                        <span class="badge badge-${data.status}">${data.status}</span>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    }
+                });
+        }
+
+        function updateProfile() {
+            if (!currentUser || !db) return;
+            
+            const data = {
+                name: document.getElementById('profileName').value,
+                phone: document.getElementById('profilePhone').value
+            };
+            
+            db.collection('users').doc(currentUser.uid).update(data)
+                .then(() => showToast('Profile updated', 'success'))
+                .catch(error => showToast('Error updating profile', 'error'));
+        }
+
+        // UI Helper Functions
+        function toggleMobileMenu() {
+            document.getElementById('navLinks').classList.toggle('active');
+        }
+
+        function showDashboardSection(section) {
+            document.querySelectorAll('#userOverview, #userBookings, #userProfile').forEach(el => {
+                el.classList.add('hidden');
+            });
+            document.getElementById('user' + section.charAt(0).toUpperCase() + section.slice(1)).classList.remove('hidden');
+            
+            document.querySelectorAll('.sidebar-menu a').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function showAdminSection(section) {
+            document.querySelectorAll('#adminOverview, #adminBookings, #adminServices, #adminGallery, #adminContent, #adminUsers, #adminSettings').forEach(el => {
+                el.classList.add('hidden');
+            });
+            document.getElementById('admin' + section.charAt(0).toUpperCase() + section.slice(1)).classList.remove('hidden');
+            
+            document.querySelectorAll('.sidebar-menu a').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function toggleFaq(element) {
+            element.classList.toggle('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        function submitContact() {
+            const name = document.getElementById('contactName').value;
+            const email = document.getElementById('contactEmail').value;
+            const message = document.getElementById('contactMessage').value;
+            
+            if (!name || !email || !message) {
+                showToast('Please fill in all fields', 'error');
+                return;
+            }
+            
+            if (db) {
+                db.collection('contacts').add({
+                    name, email, message,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                }).then(() => {
+                    showToast('Message sent! We will contact you soon.', 'success');
+                    document.getElementById('contactName').value = '';
+                    document.getElementById('contactEmail').value = '';
+                    document.getElementById('contactMessage').value = '';
+                });
+            } else {
+                showToast('Demo: Message would be sent', 'success');
+            }
+        }
+
+        function exportBookings() {
+            showToast('Export feature coming soon', 'info');
+        }
+
+        function saveBusinessHours() {
+            showToast('Business hours saved', 'success');
+        }
+
+        function addNewFaq() {
+            showToast('FAQ editor coming soon', 'info');
+        }
+
+        function blockDate() {
+            showToast('Date blocked', 'success');
+        }
+
+        function openImageModal(url) {
+            window.open(url, '_blank');
+        }
+
+        // Close modals on outside click
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        }
+
+        // Handle URL hash on load
+        window.addEventListener('hashchange', function() {
+            const page = window.location.hash.slice(1) || 'home';
+            router.navigate(page);
+        });
+
+        // Initial route
+        const initialPage = window.location.hash.slice(1) || 'home';
+        setTimeout(() => router.navigate(initialPage), 100);
+    </script>
+</body>
+</html>
